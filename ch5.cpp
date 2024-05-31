@@ -62,9 +62,9 @@ hitable* random_scene(){
 }
 
 int main(){
-    int nx = 200;
-    int ny = 100;
-    int ns = 100;
+    int nx = 400;
+    int ny = 200;
+    int ns = 200;
     ofstream myfile;
     myfile.open ("output.ppm");
     myfile << "P3\n" << nx << " " << ny << "\n255\n";
