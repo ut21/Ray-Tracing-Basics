@@ -10,7 +10,7 @@ Until some time ago when I came across Peter Shirley's (link) Ray Tracing Weeken
 
 ## Viewing the image and the PPM format
 
-The first thing we will do is to set up how we are going to view the images. To do this, we will write values to a file in the PPM (Portable Pixmap) format. To have a taster write the following in a .ppm file.
+The first thing I did was to set up how I was going to view the images. To do this, I wrote values to a file in the PPM (Portable Pixmap) format. To have a taster write the following in a .ppm file.
 
 ```
 P3
@@ -63,6 +63,16 @@ Outputs  the following image:
 
 ![img1](./output/img1.png)
 
+Instead of writing to a file, you could also write the stdout using cout and then `>` to redirect the text to a file of your choosing. In this case, your code uses standard I/O and is compiled like this:
+
+```bash
+g++ <filename>.cpp \
+&& ./a.out > image.ppm\
+&& code image.ppm
+```
+
+But I eventually moved away from this approach because I later needed to log '$t$' values for debugging (don't worry about $t$ for now) and found it more convient to print it to stdout and then redirect  while printing the pixel values directly to a file.
+
 The code lines:
 ```cpp
 double r = (double)i/(nx-1); //red channel
@@ -92,7 +102,7 @@ outputs this circular gradient:
 
 ## The vec3 Class
 
-We will be creating a class called vec3 the objects of which stores three float values corresponding to rgb. This is my `vec3.h` file:
+I created a class called vec3 the objects of which stores three float values corresponding to rgb. This is my `vec3.h` file:
 
 ```cpp
 #ifndef VEC3H
@@ -235,11 +245,11 @@ inline vec3 unit_vector(vec3 v) {
 #endif
 ```
 
-It defines all the necessary constructors, operations, and methods that we will require to manipulate rgb values. Make sure to use header guards, otherwise you might run into problems like this which are a pain to debug 🙃
+It defines all the necessary constructors, operations, and methods that  will be required to manipulate rgb values. Make sure to use header guards, otherwise you might run into problems like this which are a pain to debug 🙃
 
 ![alt text](image.png)
 
-Now we can change our main function to use vec3:
+Now I could change our main function to use vec3:
 
 ```cpp
 #include <iostream>
@@ -267,7 +277,7 @@ int main(){
 ```
 ## The Ray Class
 
-Next we will set up our ray class. A ray is a  parameterised vec3. Such that $P(t)$ returns a vec3 value. Each ray has an origin vector $A$ and a direction vector $B$ (not necessarily a unit vector), and hence:
+Next I set up our ray class. A ray is a  parameterised vec3. Such that $P(t)$ returns a vec3 value. Each ray has an origin vector $A$ and a direction vector $B$ (not necessarily a unit vector), and hence:
 $P(t) = A + tB$. The ray class will have a method that for a given $t$ outputs the corresponding vector. Notice, that $t$ can be negative.
 
 _Hence, and this is the notation used henceforth, a vector (a vec3) is a collection of 3 float values, while a ray is a collection of vectors (vec3s) along a straight line_
@@ -295,9 +305,9 @@ class ray
 ```
 The ray class is fundamental to raytracing. The camera (the common origin to all rays) shoots out a ray corresponding to each pixel in the image. For example if the ray intersects with an object in the foreground the ray outputs the color of the object.
 
-So we will now set up a helper `color()` function that uses a ray and outputs a vec3 value corresponding to the color it contributes. Initially, since there are no objects to hit the function will output a "background" which will be a simple gradient like we set up earlier. I directly implement the `color()` function in the main() file, but you can also make a `color.h` file.
+So I set up a helper `color()` function that uses a ray and outputs a vec3 value corresponding to the color it contributes. Initially, since there are no objects to hit the function will output a "background" which will be a simple gradient like was set up earlier. I directly implement the `color()` function in the main() file, but you can also make a `color.h` file.
 
-We will set up the screen with dimensions $(-2, -1, -1), (-2, 1, -1), (2, 1, -1), (2, -1, -1)$ where $z=-1$ signifies that the camera is 1 unit above the screen.
+I set up the screen with dimensions $(-2, -1, -1), (-2, 1, -1), (2, 1, -1), (2, -1, -1)$ where $z=-1$ signifies that the camera is 1 unit above the screen.
 
 ![alt text](./output/coord.png)
 
@@ -389,7 +399,7 @@ Notice, that the condition is a quadratic equation in t, and is satisfied when t
 
 ![alt text](./output/sphere.png)
 
-Hence, we can now create a function with the signature `bool hits_sphere(const vec3& center, float radius, const ray& r)`
+Hence, I could now create a function with the signature `bool hits_sphere(const vec3& center, float radius, const ray& r)`
 
 ```cpp
 bool hit_sphere(const vec3& center, float radius, const ray& r){
@@ -402,7 +412,7 @@ bool hit_sphere(const vec3& center, float radius, const ray& r){
 }
 ```
 
-and modifying our color function, we will output red for any ray hitting the sphere:
+and modifying our color function, I output red for any ray hitting the sphere:
 
 ```cpp
 vec3 color(const ray& r) {
@@ -435,7 +445,7 @@ vec3 color(const ray& r) {
 ```
 ![alt text](./output/circle.png)
 
-Much better, but this is still just a... circle, which makes sense bcs we have fundamentally just projected a sphere onto our screen. But we can use _surface normals_ to give this sphere a sense of shading, and reflection.
+Much better, but this is still just a... circle, which makes sense bcs this  has fundamentally just projected a sphere onto our screen. But we can use _surface normals_ to give this sphere a sense of shading, and reflection.
 
 ## Surface Normals
 
@@ -443,13 +453,18 @@ This is a surface normal:
 
 ![alt text](normal-2.png)
 
-In our code we will have surfance normals be unit vectors, and map each component to be between 0 and 1 and then correspond them to rgb.
+In code I map each component of the normal to be between 0 and 1 and then correspond them to rgb.
 
-Only those points will be illuminated which are hit by a ray (and for a ray hitting two points, we will consider the one closer to the camera, which corresponds to the one with smaller $t$), and so along with a function to tell if a ray hits a sphere, we also need the hit point.
+Only those points will be illuminated which are hit by a ray (and for a ray hitting two points, I consider the one closer to the camera, which corresponds to the one with smaller $t$), and so along with a function to tell if a ray hits a sphere, I also need the hit point.
 
 ```cpp
 float hit_sphere_at_t(const vec3& center, float radius, const ray& r){
-    if (!hit_sphere(center, radius, r)) {
+    vec3 oc = r.origin() - center;
+    float a = dot(r.direction(), r.direction());
+    float b = 2.0 * dot(oc, r.direction());
+    float c = dot(oc, oc) - radius*radius;
+    float discriminant = b*b - 4*a*c;
+    if (discriminant < 0) {
         return -1.0;
     }
     else {
@@ -464,9 +479,130 @@ vec3 color(const ray& r) {
     float t = hit_sphere_at_t(vec3(0,0,-1), 0.5, r);
     if (t > 0.0) {
         vec3 N = unit_vector(r.point_at_parameter(t) - vec3(0,0,-1)); //(0,0,-1) is the hard coded centre of the sphere
-        return 0.5*vec3(N.x()+1, N.y()+1, N.z()+1);
+        return 0.5*vec3(N.z()+1, N.x()+1, N.y()+1);
     }
     vec3 unit_direction = unit_vector(r.direction());
     t = 0.5*(unit_direction.y() + 1.0);
     return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
 }
+```
+(Notice: I correspond xyz to gbr, instead of rgb. This is just an aesthetic choice, you can do anything).
+
+Using the same `main()` this is the output:
+
+![alt text](./output/sunorm.png)
+
+## Setting up the camera
+
+So far, our "camera", or the point which emits the rays, has been hardcoded within the `main()` function to be at origin. But this can be abstracted to make our camera class. This is my `camera.h` file:
+
+```cpp
+#ifndef CAMERAH
+#define CAMERAH
+
+#include "ray.h"
+
+class camera {
+    public:
+        // Default constructor
+        camera() {
+            // hardcoding the boundaries of our view
+            lower_left_corner = vec3(-2.0, -1.0, -1.0);
+            horizontal = vec3(4.0, 0.0, 0.0);
+            vertical = vec3(0.0, 2.0, 0.0);
+            // hardcoding the camera position
+            origin = vec3(0.0, 0.0, 0.0);
+        }
+
+        // Parameterized constructor
+        camera(const vec3& lower_left_corner, const vec3& horizontal, const vec3& vertical, const vec3& origin)
+            : lower_left_corner(lower_left_corner), horizontal(horizontal), vertical(vertical), origin(origin) {}
+
+        // Outputs a ray for a pixel
+        ray get_ray(float u, float v) const {
+            return ray(origin, lower_left_corner + u * horizontal + v * vertical - origin);
+        }
+
+        vec3 origin;
+        vec3 lower_left_corner;
+        vec3 horizontal;
+        vec3 vertical;
+};
+#endif
+
+```
+
+I could now change our `main()` to use a camera object:
+
+```cpp
+int main(){
+    int nx = 200;
+    int ny = 100;
+    ofstream myfile;
+    myfile.open ("image.ppm");
+    myfile << "P3\n" << nx << " " << ny << "\n255\n";
+    camera cam;
+    for(int j = ny-1; j>=0; j--){
+        for(int i=0; i<nx; i++){
+            float u = float(i) / float(nx);
+            float v = float(j) / float(ny);
+            ray r = cam.get_ray(u, v);
+            vec3 col = color(r);
+            int ir = int(255.99*col[0]);
+            int ig = int(255.99*col[1]);
+            int ib = int(255.99*col[2]);
+            myfile << ir << " " << ig << " " << ib << "\n";
+        }
+    }
+    myfile.close();
+}
+```
+This outputs the same sphere I had previously gotten, but now I also have the ability to use the parametrised constructor from the camera class to change the camera positions and view boundaries from within the `main()` function.
+
+For example: The sphere is centered at $(0, 0, -1)$ (notice the parameters to `hit_sphere_at()`), with radius $=0.5$ and our camera is at $(0, 0, 0)$ but if I move the camera to $(0, 0, -0.4)$ the rendered sphere should appear larger as it is closer. And that does happen:
+`camera cam(vec3(-2.0, -1.0, -1.0), vec3(4.0, 0.0, 0.0), vec3(0.0, 2.0, 0.0), vec3(0.0, 0.0, -0.4));` outputs:
+
+![alt text](./output/bigsph.png)
+
+We could also place the camera "behind" the sphere by making $z=-2$, this should output a sphere of the same size, since the distance between the camera and the centre of the sphere is still 1 units, but the color should be different since different normals are being rendered. And voila:
+
+![alt text](./output/blsp.png)
+
+
+### A subtle bug appears
+
+So far, our code seems to be working correctly. But, what if we place the camera _INSIDE_ the surface of the sphere? Let's change the camera position to be $(0,0,-0.6)$. We would expect that the entire view of the camera would be covered by the sphere and we should see the gradient corresponding to the inner surface normals. The image rendered is:
+
+![alt text](nosph.png)
+
+This is strange, the sphere isn't rendered at all, and all we see is the background. This means that our rays are somehow passing _through_ the sphere as if it were transparent. Let's try to fix this. 
+
+Notice that the `hit_sphere_at_t()` funtion, in case of 2 real solutions for `t` outputs the smaller one:
+
+```cpp
+return (-b - sqrt(discriminant) ) / (2.0*a); //only using '-' instead of '+-'
+```
+
+And in the case when the camera is inside the sphere, there exists a point where the ray hits the sphere that lies "behind" the camera, corresponding to a _negative `t`_ value which is also the smaller solution and hence a _negative_ value is outputed by the function.
+
+Now notice that the `color()` function only detects a collision when the `t` value outputed by the `hit_sphere_at_t()` is positive. This works fine when camera is outside because then the `color()` function correctly filters out the non colliding rays which correspond to a -1 value in `hit_sphere_at_t()`.
+
+Now that I identified the bug, the fix is simple: change the if condition to:
+`if (t != -1.0)` since this filters out only those rays which are non colliding (it could also potentially filter out the rays for which the smaller solution is -1 but that number is negligible, and the work around to that would to have the `hit_sphere_at_t()` function output something like `INT_MIN()` for non collisions and update the if condition accordingly.)
+
+Let's look at our new render now:
+
+![alt text](./output/insidesph.png)
+
+Much better. If you keep the camera _on_ the sphere, the code still works and outputs the expect solid color corresponding to the normal of the point on which the camera is placed.
+
+### Another bug (when will i catch a break)
+
+Look what happens if I place my camera at $(0,1,-1)$ which is also 1 unit away from the centre:
+
+![alt text](./output/cone.png)
+
+This is very cool! We seem to be generating a cone. Actually, it's much cooler, we are generating conical sections, as plane slices on the sphere at different angles. This is because (so far) our camera cannot turn and only outputs light upto the corners of its view (as opposed to in all directions). This causes the sphere to be sectioned of the a plane not perpendicular to the camera. 
+
+So, the bug wasn't that bad after all, but to fix it we will need to allow the camera to rotate about it's axes (imagine moving your face while keeping your noise stationary)
+

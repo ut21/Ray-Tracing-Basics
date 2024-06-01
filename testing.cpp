@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "ray.h"
+#include "camera.h"
 using namespace std;
 
 bool hit_sphere(const vec3& center, float radius, const ray& r){
@@ -28,7 +29,8 @@ float hit_sphere_at_t(const vec3& center, float radius, const ray& r){
 
 vec3 color(const ray& r) {
     float t = hit_sphere_at_t(vec3(0,0,-1), 0.5, r);
-    if (t > 0.0) {
+    cout << t << endl;
+    if (t != -1) {
         vec3 N = unit_vector(r.point_at_parameter(t) - vec3(0,0,-1)); //(0,0,-1) is the hard coded centre of the sphere
         return 0.5*vec3(N.z()+1, N.x()+1, N.y()+1);
     }
@@ -43,15 +45,12 @@ int main(){
     ofstream myfile;
     myfile.open ("image.ppm");
     myfile << "P3\n" << nx << " " << ny << "\n255\n";
-    vec3 lower_left_corner(-2.0, -1.0, -1.0);
-    vec3 horizontal(4.0, 0.0, 0.0);
-    vec3 vertical(0.0, 2.0, 0.0);
-    vec3 origin(0.0, 0.0, 0.0);
+    camera cam(vec3(-2.0, -1.0, -1.0), vec3(5.0, 0.0, 0.0), vec3(0.0, 2.5, 0.0), vec3(0,1,-1));
     for(int j = ny-1; j>=0; j--){
         for(int i=0; i<nx; i++){
             float u = float(i) / float(nx);
             float v = float(j) / float(ny);
-            ray r(origin, lower_left_corner + u*horizontal + v*vertical);
+            ray r = cam.get_ray(u, v);
             vec3 col = color(r);
             int ir = int(255.99*col[0]);
             int ig = int(255.99*col[1]);
