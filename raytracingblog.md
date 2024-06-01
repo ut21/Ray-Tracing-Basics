@@ -61,7 +61,7 @@ g++ <filename>.cpp \
 
 Outputs  the following image:
 
-![img1](/Users/apple/Documents/GitHub/Ray-Tracing-Basics/output/img1.png)
+![img1](./output/img1.png)
 
 The code lines:
 ```cpp
@@ -87,7 +87,7 @@ for(int j = ny-1; j>=0; j--){
 ```
 outputs this circular gradient:
 
-![alt text](/Users/apple/Documents/GitHub/Ray-Tracing-Basics/output/img2.png)
+![alt text](./output/img2.png)
 
 
 ## The vec3 Class
