@@ -439,3 +439,34 @@ Much better, but this is still just a... circle, which makes sense bcs we have f
 
 ## Surface Normals
 
+This is a surface normal:
+
+![alt text](normal-2.png)
+
+In our code we will have surfance normals be unit vectors, and map each component to be between 0 and 1 and then correspond them to rgb.
+
+Only those points will be illuminated which are hit by a ray (and for a ray hitting two points, we will consider the one closer to the camera, which corresponds to the one with smaller $t$), and so along with a function to tell if a ray hits a sphere, we also need the hit point.
+
+```cpp
+float hit_sphere_at_t(const vec3& center, float radius, const ray& r){
+    if (!hit_sphere(center, radius, r)) {
+        return -1.0;
+    }
+    else {
+        return (-b - sqrt(discriminant) ) / (2.0*a);
+    }
+}
+```
+
+and the `color()` function changes to:
+```cpp
+vec3 color(const ray& r) {
+    float t = hit_sphere_at_t(vec3(0,0,-1), 0.5, r);
+    if (t > 0.0) {
+        vec3 N = unit_vector(r.point_at_parameter(t) - vec3(0,0,-1)); //(0,0,-1) is the hard coded centre of the sphere
+        return 0.5*vec3(N.x()+1, N.y()+1, N.z()+1);
+    }
+    vec3 unit_direction = unit_vector(r.direction());
+    t = 0.5*(unit_direction.y() + 1.0);
+    return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+}
