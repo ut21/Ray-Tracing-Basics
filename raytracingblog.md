@@ -92,7 +92,7 @@ outputs this circular gradient:
 
 ## The vec3 Class
 
-We will be creating a class called vec3 the objects of which stores three integer values corresponding to rgb. This is my `vec3.h` file:
+We will be creating a class called vec3 the objects of which stores three float values corresponding to rgb. This is my `vec3.h` file:
 
 ```cpp
 #ifndef VEC3H
@@ -270,6 +270,8 @@ int main(){
 Next we will set up our ray class. A ray is a  parameterised vec3. Such that $P(t)$ returns a vec3 value. Each ray has an origin vector $A$ and a direction vector $B$ (not necessarily a unit vector), and hence:
 $P(t) = A + tB$. The ray class will have a method that for a given $t$ outputs the corresponding vector. Notice, that $t$ can be negative.
 
+_Hence, and this is the notation used henceforth, a vector (a vec3) is a collection of 3 float values, while a ray is a collection of vectors (vec3s) along a straight line_
+
 Here is my `ray.h` file:
 ```cpp
 #ifndef RAYH
@@ -303,8 +305,8 @@ We will set up the screen with dimensions $(-2, -1, -1), (-2, 1, -1), (2, 1, -1)
 vec3 color(ray& r){
     vec3 origin = r.origin();
     vec3 direction = unit_vector(r.direction());
-    float red = (float)(direction.x() + 1);
-    float green = (float)(direction.y() +1);
+    float red = 0.5*(float)(direction.x() + 1);
+    float green = 0.5*(float)(direction.y() +1);
     float blue = 0.0;
     return vec3(red,green,blue);
 }
@@ -374,4 +376,66 @@ $$
 Using vector calculus this translates to:
 
 $$\exists t[dot((P(t)-c), (P(t)-c)) = R^2]$$
+
+expanding which becomes:
+$$
+\exists t[dot(A+t*B-C), dot(A+t*B-C)=R^2]
+$$
+$$
+\implies \exists t[t^2*dot(B, B) + 2t*dot(B, A-C) + dot(A-C, A-C)-R^2=0]
+$$
+
+Notice, that the condition is a quadratic equation in t, and is satisfied when the discriminant is non negative.
+
+![alt text](./output/sphere.png)
+
+Hence, we can now create a function with the signature `bool hits_sphere(const vec3& center, float radius, const ray& r)`
+
+```cpp
+bool hit_sphere(const vec3& center, float radius, const ray& r){
+    vec3 oc  = r.origin() - center;
+    float a = dot(r.direction(), r.direction());
+    float b = 2.0 * dot(oc, r.direction());
+    float c = dot(oc, oc) - radius*radius;
+    float discriminant = b*b - 4*a*c;
+    return (discriminant > 0);
+}
+```
+
+and modifying our color function, we will output red for any ray hitting the sphere:
+
+```cpp
+vec3 color(const ray& r) {
+        if(hit_sphere(vec3(0,0,-1), 0.5, r)){
+            return vec3(1,0,0);
+        }
+        vec3 origin = r.origin();
+        vec3 direction = unit_vector(r.direction());
+        float red = 0.5*(float)(direction.x() + 1);
+        float green = 0.5*(float)(direction.y() +1);
+        float blue = 0.0;
+        return vec3(red,green,blue);
+}
+```
+
+the `main()` remains unchanged, and the output is:
+
+![bangladeshi realness](./output/blgdsh.png)
+
+Yay, it works, but also looks like the Bangladeshi flag which is an aesthetic chocie im not taking to my grave, so i will be using another `color()` that linearly interpolates blue hues depending on the $y$ value:
+```cpp
+vec3 color(const ray& r) {
+        if(hit_sphere(vec3(0,0,-1), 0.5, r)){
+            return vec3(1,0,0);
+        }
+        vec3 unit_direction = unit_vector(r.direction());
+        float t = 0.5*(unit_direction.y() + 1.0);
+        return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+}
+```
+![alt text](./output/circle.png)
+
+Much better, but this is still just a... circle, which makes sense bcs we have fundamentally just projected a sphere onto our screen. But we can use _surface normals_ to give this sphere a sense of shading, and reflection.
+
+## Surface Normals
 
