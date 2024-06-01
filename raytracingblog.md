@@ -265,4 +265,113 @@ int main(){
     myfile.close();
 }
 ```
+## The Ray Class
+
+Next we will set up our ray class. A ray is a  parameterised vec3. Such that $P(t)$ returns a vec3 value. Each ray has an origin vector $A$ and a direction vector $B$ (not necessarily a unit vector), and hence:
+$P(t) = A + tB$. The ray class will have a method that for a given $t$ outputs the corresponding vector. Notice, that $t$ can be negative.
+
+Here is my `ray.h` file:
+```cpp
+#ifndef RAYH
+#define RAYH
+#include "vec3.h"
+
+class ray
+{
+    public:
+        ray() {}
+        ray(const vec3& a, const vec3& b) { A = a; B = b; }
+        vec3 origin() const       { return A; }
+        vec3 direction() const    { return B; }
+        vec3 point_at_parameter(float t) const { return A + t*B; }
+
+        vec3 A;
+        vec3 B;
+};
+
+#endif
+```
+The ray class is fundamental to raytracing. The camera (the common origin to all rays) shoots out a ray corresponding to each pixel in the image. For example if the ray intersects with an object in the foreground the ray outputs the color of the object.
+
+So we will now set up a helper `color()` function that uses a ray and outputs a vec3 value corresponding to the color it contributes. Initially, since there are no objects to hit the function will output a "background" which will be a simple gradient like we set up earlier. I directly implement the `color()` function in the main() file, but you can also make a `color.h` file.
+
+We will set up the screen with dimensions $(-2, -1, -1), (-2, 1, -1), (2, 1, -1), (2, -1, -1)$ where $z=-1$ signifies that the camera is 1 unit above the screen.
+
+![alt text](./output/coord.png)
+
+```cpp
+vec3 color(ray& r){
+    vec3 origin = r.origin();
+    vec3 direction = unit_vector(r.direction());
+    float red = (float)(direction.x() + 1);
+    float green = (float)(direction.y() +1);
+    float blue = 0.0;
+    return vec3(red,green,blue);
+}
+```
+
+using which with `main()` after setting up the origin and the image dimensions like such:
+```cpp
+int main(){
+    int nx = 200;
+    int ny = 100;
+    ofstream myfile;
+    myfile.open ("image.ppm");
+    myfile << "P3\n" << nx << " " << ny << "\n255\n";
+    vec3 lower_left_corner(-2.0, -1.0, -1.0);
+    vec3 horizontal(4.0, 0.0, 0.0);
+    vec3 vertical(0.0, 2.0, 0.0);
+    vec3 origin(0.0, 0.0, 0.0);
+    for(int j = ny-1; j>=0; j--){
+        for(int i=0; i<nx; i++){
+            float u = float(i) / float(nx);
+            float v = float(j) / float(ny);
+            ray r(origin, lower_left_corner + u*horizontal + v*vertical);
+            vec3 col = color(r);
+            int ir = int(255.99*col[0]);
+            int ig = int(255.99*col[1]);
+            int ib = int(255.99*col[2]);
+            myfile << ir << " " << ig << " " << ib << "\n";
+        }
+    }
+    myfile.close();
+}
+```
+outputs this gradient:
+
+![alt text](./output/img3.png)
+
+Notice this part of the code:
+`float red = (float)(direction.x() + 1);`. `red` needs to be a value between $0$ and $1$
+
+`direction` is a unit vector hence:
+
+$$
+-1 < \text{direction.x()} < 1
+$$
+
+$$
+0 < \text{direction.x()} + 1 < 2
+$$
+
+$$
+0 < 0.5(\text{direction.x()} + 1) < 1
+$$
+
+## Getting closer to balls: making a sphere
+
+We will now make a sphere, and any ray that hits the sphere will output red color (so, we should be seeing a red sphere on the screen).
+
+A sphere, with centre as $c(x,y,z)$ is parameterised as: 
+$$(x-cx)^2 + (y-cy)^2 + (z-cz)^2 = R^2$$
+ 
+Rewriting this using ray notation, a ray hits a sphere if 
+
+$$
+\exists t[(P(t) \cdot x-cx)^2 + (P(t) \cdot y-cy)2 + (P(t) \cdot z-cz)^2 = R^2]
+$$
+
+Using vector calculus this translates to:
+
+$$\exists t[dot((P(t)-c), (P(t)-c)) = R^2]$$
 
