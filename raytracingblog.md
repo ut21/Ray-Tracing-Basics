@@ -374,8 +374,11 @@ $$
 
 We will now make a sphere, and any ray that hits the sphere will output red color (so, we should be seeing a red sphere on the screen).
 
-A sphere, with centre as $c(x,y,z)$ is parameterised as: 
-$$(x-cx)^2 + (y-cy)^2 + (z-cz)^2 = R^2$$
+A sphere, with centre as $c(x,y,z)$ is parameterised as:
+
+$$
+(x-cx)^2 + (y-cy)^2 + (z-cz)^2 = R^2
+$$
  
 Rewriting this using ray notation, a ray hits a sphere if 
 
@@ -385,12 +388,16 @@ $$
 
 Using vector calculus this translates to:
 
-$$\exists t[dot((P(t)-c), (P(t)-c)) = R^2]$$
+$$
+\exists t[dot((P(t)-c), (P(t)-c)) = R^2]
+$$
 
 expanding which becomes:
+
 $$
 \exists t[dot(A+t*B-C), dot(A+t*B-C)=R^2]
 $$
+
 $$
 \implies \exists t[t^2*dot(B, B) + 2t*dot(B, A-C) + dot(A-C, A-C)-R^2=0]
 $$
@@ -728,10 +735,13 @@ To zoom in let's reduce the FOV to 15:
 Theoretically, since we can render spheres we can render any volume by rendering lots of small spheres. This is a mix between point clouds and voxels. But that is a WILDLY inefficient and inelagant way to do it, and i just mentioned it for a gag.
 
 We can render any surface with the equation 
+
 $$
 f(x,y,z)=s
 $$
+
 by analysing it's intersecetions with a ray
+
 $$
 x=A_x + t*B_x
 $$
@@ -745,6 +755,7 @@ z=A_z + t*B_z
 $$
 
 as long as we are able to find solutions to:
+
 $$
 f(A_x + t*B_x, A_y + t*B_y, A_z + t*B_z) = s
 $$
@@ -756,6 +767,7 @@ For all the following curves, I have centered them at $(0,0,0)$ and moved the ca
 $$
 x^2+y^2=R^2
 $$
+
 $$
 \implies (A_x+t*B_x)^2 + (A_y+t*B_y)^2 - R^2=0
 $$
@@ -849,13 +861,17 @@ and this outputs:
 ### Cone
 
 To render a cone, we can follow a similar approach as we did for the cylinder. For a cone with its vertex at $(0,0,0)$ and its axis aligned along the $z$-axis, we can use the equation:
+
 $$
 x^2 + y^2 = (z\div h)^2 R^2
 $$
+
 where $R$ is radius of base, and $h$ is height
+
 $$
 \implies \left(A_x + t B_x\right)^2 + \left(A_y + t B_y\right)^2 = \left(\frac{A_z + t B_z}{h}\right)^2R^2
 $$
+
 $$
 \implies t^2 \left(B_x^2 + B_y^2 - \frac{R^2 B_z^2}{h^2}\right) 
 + t \left(2A_x B_x + 2A_y B_y - \frac{2 R^2 A_z B_z}{h^2}\right) 
