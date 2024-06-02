@@ -723,3 +723,208 @@ To zoom in let's reduce the FOV to 15:
 
 ![alt text](./output/zom.png)
 
+## What else can we do with the current setup?
+
+Theoretically, since we can render spheres we can render any volume by rendering lots of small spheres. This is a mix between point clouds and voxels. But that is a WILDLY inefficient and inelagant way to do it, and i just mentioned it for a gag.
+
+We can render any surface with the equation 
+$$
+f(x,y,z)=s
+$$
+by analysing it's intersecetions with a ray
+$$
+x=A_x + t*B_x
+$$
+$$
+y=A_y + t*B_y
+$$
+$$
+z=A_z + t*B_z
+$$
+
+as long as we are able to find solutions to:
+$$
+f(A_x + t*B_x, A_y + t*B_y, A_z + t*B_z) = s
+$$
+
+For all the following curves, I have centered them at $(0,0,0)$ and moved the camera elsewhere. This is just to make the code look cleaner.
+
+### Cylinder
+
+$$
+x^2+y^2=R^2
+$$
+$$
+\implies (A_x+t*B_x)^2 + (A_y+t*B_y)^2 - R^2=0
+$$
+
+$$
+\implies t^2*(B_x^2+B_y^2)+t*(2A_x B_x + 2A_y B_y) + (A_x^2 + A_y^2-R^2)=0
+$$
+
+This is quadratic in $t$ so we will follow the approach we did in spheres. I wrote `hit_cylinder_at_t()` and `colorCylinder()` like follows, and used `colorCylinder()` in `main()`:
+
+```cpp
+float hit_cylinder_at_t(const vec3& center, float radius, const ray& r){
+    vec3 oc = r.origin() - center;
+    vec3 direction = r.direction();
+    float bx = dot(direction, vec3(1,0,0));
+    float by = dot(direction, vec3(0,1,0));
+    float bz = dot(direction, vec3(0,0,1));
+    float ax = dot(oc, vec3(1,0,0));
+    float ay = dot(oc, vec3(0,1,0));
+    float az = dot(oc, vec3(0,0,1));
+    float a = bx*bx + by*by;
+    float b = 2.0f * (ax*bx + ay*by);
+    float c = ax*ax + ay*ay - radius * radius;
+    float discriminant = b * b - 4.0f * a * c;
+
+    if (discriminant < 0) {
+        return -1.0f;
+    } else {
+        return (-b - sqrt(discriminant)) / (2.0f * a);
+    }
+}
+```
+
+and
+
+```cpp
+vec3 colorCylinder(const ray& r) {
+    float t = hit_cylinder_at_t(vec3(0,0,-1), 0.5, r);
+    if (t != -1) {
+        vec3 N = unit_vector(r.point_at_parameter(t) - vec3(0,0,-1));
+        return 0.5*vec3(N.z()+1, N.x()+1, N.y()+1);
+    }
+    vec3 unit_direction = unit_vector(r.direction());
+    t = 0.5*(unit_direction.y() + 1.0);
+    return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+}
+```
+outputs:
+
+![alt text](./output/clinder.png)
+
+Yay, it works, now let's make a finite cylinder by only using those $t$'s for which the $z$ value is between $z_max$ and $z_min$, and if 2 values of $t$ satisfy this we return the smaller value. The updated `hit_cylinder_at_t()` looks like:
+```cpp
+float hit_cylinder_at_t(const vec3& center, float radius, float z_min, float z_max, const ray& r){
+    vec3 oc = r.origin() - center;
+    vec3 direction = r.direction();
+    float bx = dot(direction, vec3(1,0,0));
+    float by = dot(direction, vec3(0,1,0));
+    float bz = dot(direction, vec3(0,0,1));
+    float ax = dot(oc, vec3(1,0,0));
+    float ay = dot(oc, vec3(0,1,0));
+    float az = dot(oc, vec3(0,0,1));
+    float a = bx*bx + by*by;
+    float b = 2.0f * (ax*bx + ay*by);
+    float c = ax*ax + ay*ay - radius * radius;
+    float discriminant = b * b - 4.0f * a * c;
+
+    if (discriminant < 0) {
+        return -1.0f;
+    } else {
+        float t0 = (-b - sqrt(discriminant)) / (2.0f * a);
+        float t1 = (-b + sqrt(discriminant)) / (2.0f * a);
+
+        float z0 = dot(r.point_at_parameter(t0), vec3(0,0,1));
+        float z1 = dot(r.point_at_parameter(t1), vec3(0,0,1));
+
+        if (z0 > z_min && z0 < z_max) {
+            return t0;
+        } else if (z1 > z_min && z1 < z_max) {
+            return t1;
+        } else {
+            return -1.0f;
+        }
+    }
+}
+```
+and this outputs:
+
+![alt text](./output/fomote.png)
+
+### Cone
+
+To render a cone, we can follow a similar approach as we did for the cylinder. For a cone with its vertex at $(0,0,0)$ and its axis aligned along the $z$-axis, we can use the equation:
+$$
+x^2 + y^2 = (z\div h)^2 R^2
+$$
+where $R$ is radius of base, and $h$ is height
+$$
+\implies \left(A_x + t B_x\right)^2 + \left(A_y + t B_y\right)^2 = \left(\frac{A_z + t B_z}{h}\right)^2R^2
+$$
+$$
+\implies t^2 \left(B_x^2 + B_y^2 - \frac{R^2 B_z^2}{h^2}\right) 
++ t \left(2A_x B_x + 2A_y B_y - \frac{2 R^2 A_z B_z}{h^2}\right) 
++ \left(A_x^2 + A_y^2 - \frac{R^2 A_z^2}{h^2}\right) = 0
+$$
+
+This is quadratic in $t$ so using the approach we have used so far, we will define `hit_cone_at_t()` and `colorCone()`
+
+```cpp
+float hit_cone_at_t(const vec3& center, float radius, float height, const ray& r) {
+    vec3 oc = r.origin() - center;
+    vec3 direction = r.direction();
+
+    float bx = dot(direction, vec3(1,0,0));
+    float by = dot(direction, vec3(0,1,0));
+    float bz = dot(direction, vec3(0,0,1));
+    float ax = dot(oc, vec3(1,0,0));
+    float ay = dot(oc, vec3(0,1,0));
+    float az = dot(oc, vec3(0,0,1));
+
+    float k = radius / height;
+    float k2 = k * k;
+
+    float a = bx*bx + by*by -k2*bz*bz;
+    float b = 2*(ax*bx + ay*by - k2*az*bz);
+    float c = ax*ax + ay*ay - k2*az*az;
+
+    float discriminant = b * b - 4.0f * a * c;
+
+    if (discriminant < 0) {
+        return -1.0f; // No intersection
+    } else {
+        float sqrt_disc = sqrt(discriminant);
+        float t0 = (-b - sqrt_disc) / (2.0f * a);
+        float t1 = (-b + sqrt_disc) / (2.0f * a);
+
+        return t0;
+        
+        // float z0 = dot(r.point_at_parameter(t0), vec3(0,0,1));
+        // float z1 = dot(r.point_at_parameter(t1), vec3(0,0,1));
+        
+        // bool t0_valid = (z0 >= z_min && z0 <= z_max);
+        // bool t1_valid = (z1 >= z_min && z1 <= z_max);
+        
+        // if (t0_valid && t1_valid) {
+        //     return min(t0, t1); // Return the closest valid intersection
+        // } else if (t0_valid) {
+        //     return t0;
+        // } else if (t1_valid) {
+        //     return t1;
+        // } else {
+        //     return -1.0f; // No valid intersection within bounds
+        // }
+    }
+}
+```
+
+This outputs a double cone, corresponding to positive and negative $t$'s. We can change this by using `z_max` and `z_min` like we did for cylinder (code in comments, add 2 remaining parameters to the function).
+
+The `colorCone()` function is nearly identical. You can find it on the GitHub repo.
+
+![alt text](./output/doublecn.png)
+
+### Torus
+Can be implemented similar to what we have done so far, but the final equation in $t$ is quartic (degree 4), which makes sense since a ray can intersect a torus at max 4 times. I am, for now, too tired to type out the math and the code, but it can be done lol. I'll try to add it soon.
+
+For now: find the math here https://www.cl.cam.ac.uk/teaching/1999/AGraphHCI/SMAG/node2.html
+ and a more involved piece here http://cosinekitty.com/raytrace/chapter13_torus.html 
+
+![alt text](https://www.gsn-lib.org/docs/nodes/images/torus_20_50.png)
+
+### Piece de la Resistance: A displaced sphere
+
+
