@@ -606,3 +606,120 @@ This is very cool! We seem to be generating a cone. Actually, it's much cooler, 
 
 So, the bug wasn't that bad after all, but to fix it we will need to allow the camera to rotate about it's axes (imagine moving your face while keeping your noise stationary)
 
+## More work on the camera class:
+
+FOV is field of view, which tells us how much our camera can see. Until now the FOV had been defined by `lower_left_corner`, `vertical` and `horizontal`. When you squint your eyes, your fov decreases.
+
+Now, we will define two parameters to the camera constructor:
+`vfov` which is the angle between the $xz$ plane and the fov plane which is perpendicular to $yz$ plane, and `aspect` which is the ratio between the height and width of our field of view.
+
+Let's update our camera class:
+
+```cpp
+#ifndef CAMERAH
+#define CAMERAH
+
+#include "ray.h"
+
+class camera {
+    public:
+        camera(float vfov, float aspect) { // vfov is top to bottom in degrees
+            float theta = vfov*M_PI/180;
+            float half_height = tan(theta/2);
+            float half_width = aspect * half_height;
+            lower_left_corner = vec3(-half_width, -half_height, -1.0);
+            horizontal = vec3(2*half_width, 0.0, 0.0);
+            vertical = vec3(0.0, 2*half_height, 0.0);
+            origin = vec3(0.0, 0.0, 0.0);
+        }
+        ray get_ray(float u, float v) {
+            return ray(origin,
+                        lower_left_corner + u*horizontal + v*vertical - origin);
+        }
+
+        vec3 origin;
+        vec3 lower_left_corner;
+        vec3 horizontal;
+        vec3 vertical;
+};
+#endif
+```
+
+The only change is that `vertical`, `lower_left_corner`, and `horizontal` are now functions of the parameters, rather than being paramteres themselves. 
+
+Using `camera cam(90, float(nx)/float(ny))` outputs the following image, which we have seen before:
+
+![alt text](./output/sunorm.png)
+
+But reducing the field of view by keeping `vfov` (verticle fov) to be 40 degrees, we can only see some part of the sphere:
+
+![alt text](./output/somsph.png)
+
+Great, but our camera still can't rotate. Let's change that.
+
+The approach I adopted is standard in computer graphics and camera transformations.
+
+To the constructor I added take two points (vec3 values) `lookfrom` and `lookat` and return a camera object located at `lookfrom` and positioned towards `lookat`-`lookfrom`. But there is one more degree of freedom: the roation about the `lookat`-`lookfrom` axis, this we calculate this using `vup`. Usually, `vup` is $(0,1,0)$, but notice that `vup` is not necessarily perpendicular to the `lookat`-`lookfrom` axis. 
+
+Which means we have 2 (not necessarily perpendicular) linearly independant vectors, and we want to create the corresponding orthonormal basis. This basis is unique and can we calculated using thr _Gram-Schmidt process_.
+
+The math is better understood, when not explained by me:
+https://math.ryerson.ca/~danziger/professor/MTH141/Handouts/gram.pdf
+
+https://math.berkeley.edu/~arash/54/notes/6_4.pdf
+
+https://people.tamu.edu/~yvorobets//MATH304-2011A/Lect3-05web.pdf
+
+https://www.youtube.com/watch?v=zHbfZWZJTGc
+
+Turning this into code, this is our new `camera.h` file:
+
+```cpp
+#ifndef CAMERAH
+#define CAMERAH
+
+#include "ray.h"
+
+class camera {
+    public:
+        camera(vec3 lookfrom, vec3 lookat, vec3 vup, float vfov, float aspect) {
+            vec3 u, v, w;
+            float theta = vfov*M_PI/180;
+            float half_height = tan(theta/2);
+            float half_width = aspect * half_height;
+            origin = lookfrom;
+            w = unit_vector(lookfrom - lookat);
+            u = unit_vector(cross(vup, w));
+            v = cross(w, u);
+            lower_left_corner = origin - half_width*u - half_height*v - w;
+            horizontal = 2*half_width*u;
+            vertical = 2*half_height*v;
+        }
+        ray get_ray(float s, float t) {
+            return ray(origin,
+                        lower_left_corner + s*horizontal + t*vertical - origin);
+        }
+
+        vec3 origin;
+        vec3 lower_left_corner;
+        vec3 horizontal;
+        vec3 vertical;
+};
+#endif
+```
+
+This video is a good visualiser: https://www.youtube.com/watch?v=G6skrOtJtbM&ab_channel=Udacity
+
+This is the output using 
+```cpp
+camera cam(vec3(-2,2,1), vec3(0,0,-1), vec3(0,1,0), 90, float(nx)/float(ny));
+```
+
+![alt text](./output/cam.png)
+
+You could try changing vup but bcs of how completely symmetric a sphere is the only change will be in the normals, not the shape.
+
+To zoom in let's reduce the FOV to 15:
+
+![alt text](./output/zom.png)
+

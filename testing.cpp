@@ -45,7 +45,7 @@ int main(){
     ofstream myfile;
     myfile.open ("image.ppm");
     myfile << "P3\n" << nx << " " << ny << "\n255\n";
-    camera cam(vec3(-2.0, -1.0, -1.0), vec3(5.0, 0.0, 0.0), vec3(0.0, 2.5, 0.0), vec3(0,1,-1));
+    camera cam(vec3(-2,2,1), vec3(0,0,-1), vec3(0,1,0), 15, float(nx)/float(ny));
     for(int j = ny-1; j>=0; j--){
         for(int i=0; i<nx; i++){
             float u = float(i) / float(nx);
