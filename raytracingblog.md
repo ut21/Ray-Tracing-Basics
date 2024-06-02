@@ -735,9 +735,11 @@ by analysing it's intersecetions with a ray
 $$
 x=A_x + t*B_x
 $$
+
 $$
 y=A_y + t*B_y
 $$
+
 $$
 z=A_z + t*B_z
 $$
