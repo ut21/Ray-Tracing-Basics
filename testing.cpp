@@ -3,7 +3,20 @@
 #include "ray.h"
 #include "camera.h"
 #include <math.h>
+#include "perlin.h"
+#include "texture.h"
 using namespace std;
+
+float noise(const vec3& p) {
+    return 0.5 * (1 + sin(p.x() * 10 + 5 * sin(p.y() * 10 + 5 * sin(p.z() * 10))));
+}
+
+vec3 displacementFunction(const vec3& N) {
+    float displacementX = noise(N + vec3(1.0, 0.0, 0.0));
+    float displacementY = noise(N + vec3(0.0, 1.0, 0.0));
+    float displacementZ = noise(N + vec3(0.0, 0.0, 1.0));
+    return vec3(displacementX, displacementY, displacementZ) * 0.1; // Adjust 0.1 for more or less displacement
+}
 
 bool hit_sphere(const vec3& center, float radius, const ray& r){
     vec3 oc  = r.origin() - center;
@@ -28,16 +41,45 @@ float hit_sphere_at_t(const vec3& center, float radius, const ray& r){
     }
 }
 
+vec3 displacementFunction(vec3& N){
+    N = 0.5*vec3(N.z()+1, N.x()+1, N.y()+1);
+    vec3 newN(sin(N.x()), sin(N.y()), sin(N.z()));
+    return newN;
+}
+
+// vec3 color(const ray& r) {
+//     float t = hit_sphere_at_t(vec3(0,0,-1), 0.5, r);
+//     if (t != -1) {
+//         vec3 N = unit_vector(r.point_at_parameter(t) - vec3(0, 0, -1)); // (0,0,-1) is the hard-coded center of the sphere
+//         N = unit_vector(N + displacementFunction(N)); // Apply and normalize displacement
+//         return 0.5 * vec3(N.z() + 1, N.x() + 1, N.y() + 1);
+//     }
+//     vec3 unit_direction = unit_vector(r.direction());
+//     t = 0.5*(unit_direction.y() + 1.0);
+//     return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+// }
+
 vec3 color(const ray& r) {
-    float t = hit_sphere_at_t(vec3(0,0,-1), 0.5, r);
+    vec3 sphere_center(0, 0, -1);
+    float sphere_radius = 0.5;
+    float t = hit_sphere_at_t(sphere_center, sphere_radius, r);
     if (t != -1) {
-        vec3 N = unit_vector(r.point_at_parameter(t) - vec3(0,0,-1)); //(0,0,-1) is the hard coded centre of the sphere
-        return 0.5*vec3(N.z()+1, N.x()+1, N.y()+1);
+        vec3 P = r.point_at_parameter(t);  // The intersection point on the sphere
+        vec3 N = unit_vector(P - sphere_center);  // Normal at the intersection point
+        
+        // Apply noise to the point P to displace it
+        float displacement = noise(N) * 0.2;  // Adjust 0.2 for more or less displacement
+        P = P + N * displacement;
+        N = unit_vector(P - sphere_center);  // Recalculate normal after displacement
+
+        return 0.5 * vec3(N.z() + 1, N.x() + 1, N.y() + 1);
     }
     vec3 unit_direction = unit_vector(r.direction());
-    t = 0.5*(unit_direction.y() + 1.0);
-    return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+    t = 0.5 * (unit_direction.y() + 1.0);
+    return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
+
+
 
 float hit_cylinder_at_t(const vec3& center, float radius, float z_min, float z_max, const ray& r){
     vec3 oc = r.origin() - center;
@@ -143,18 +185,19 @@ vec3 colorCone(const ray& r) {
 
 
 int main(){
-    int nx = 200;
-    int ny = 100;
+    int nx = 2000;
+    int ny = 1000;
+
     ofstream myfile;
-    myfile.open ("image.ppm");
+    myfile.open ("image.ppm");int ns = 10;
     myfile << "P3\n" << nx << " " << ny << "\n255\n";
-    camera cam((1/sqrt(40))*vec3(0,3,-5), vec3(0,0,-1), vec3(0,1,0), 90, float(nx)/float(ny));
+    camera cam(vec3(-1, 0, 1), vec3(0,0,-1), vec3(0,1,0), 45, float(nx)/float(ny));
     for(int j = ny-1; j>=0; j--){
         for(int i=0; i<nx; i++){
             float u = float(i) / float(nx);
             float v = float(j) / float(ny);
             ray r = cam.get_ray(u, v);
-            vec3 col = colorCone(r);
+            vec3 col = color(r);
             int ir = int(255.99*col[0]);
             int ig = int(255.99*col[1]);
             int ib = int(255.99*col[2]);

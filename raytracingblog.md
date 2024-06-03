@@ -2,11 +2,12 @@
 
 
 ## Yapping and background
-Last semester I worked with Neural Radiance Fields for my project with Prof. Sundaresan Raman (as it happens with most SOPs at BITS, the project didn't really go anywhere and I should be getting an A regardless :) )
+I have worked a little bit with Neural Radiance Fields in the past before, especially on the neural part of it while treating the rendering part as a black box. But I have had a lot of free time lately so I went through Peter Shirley's amazing blog on ray tracing https://raytracing.github.io/ and built a primitve ray tracer of my own. So far the blog contains only the very basics of the tracer, and I plan to keep updating it and also implement some cool ideas I have that are possible with the current skeleton (but which I am too lazy for right now. I have been working on this blog for 5 days now which is 4 more than i expected to). You should go through the original weekend series, it's extremely well written and concise. I mostly follow it but eventually change a few things and take a different turn. Happy to hear any ideas you have about cool things to build with it. As you will see later, I used the tracer to render surfaces other than spheres (which shirley limits his first part of the series to), and this took the most time, so if you are able to parametrise ray collisions with any cool surfaces, i'd be happy to add it to the blog (with due credit). Just send the math also if you want, the coding part is trivial, but i really am too old to solve cubic equations now :') 
 
-I treated the graphics rendering part of the NeRF pipeline as a blackbox and the neural architecture itself as just a function approximator for an abstract plenoptic function (link).
+~~All~~ Most the code (albeit a little disorganised) can be found here: https://github.com/ut21/Ray-Tracing-Basics/tree/main
+I'll eventually clean up the repo, but for now I have provided all the code within the blog if you need it.
 
-Until some time ago when I came across Peter Shirley's (link) Ray Tracing Weekend Series and made a rudimentary ray tracer of my own.
+Have a good read :D
 
 ## Viewing the image and the PPM format
 
@@ -603,6 +604,8 @@ Let's look at our new render now:
 
 Much better. If you keep the camera _on_ the sphere, the code still works and outputs the expect solid color corresponding to the normal of the point on which the camera is placed.
 
+(NOTE: with this bug fix approach we are basically allowing the camera to look "behind" itself, which might or might not be what you want depending on how realistic you want your renders to be, i found that this allows for some funky render possibilities so I let it be, for a more realistic fix, just change the function to return the smallest _positive_ $t$ value.)
+
 ### Another bug (when will i catch a break)
 
 Look what happens if I place my camera at $(0,1,-1)$ which is also 1 unit away from the centre:
@@ -943,6 +946,9 @@ For now: find the math here https://www.cl.cam.ac.uk/teaching/1999/AGraphHCI/SMA
 
 ![alt text](https://www.gsn-lib.org/docs/nodes/images/torus_20_50.png)
 
-### Piece de la Resistance: A displaced sphere
+### Ok I'm so tired now. I'll update it soon or post a part 2. 
+Here are the things im working on: creating perlin noise textures, making the code more modular and add things like material properites (think metal vs glass vs water droplet), writing a GPU usable version of the tracer, and rendering these surfaces: https://www.imaginary.org/gallery/herwig-hauser-classic
 
+
+Thanks for reading so far (or skipping to the end, id do the same trust me). If you want to reach out w ideas, bugs, imporvements or to just chat wish it upon a star that we cross paths (or open a pull request, or write to me at utkarshzee@gmail.com)
 
