@@ -1,2 +1,4 @@
 # Balls
-![balls](https://github.com/ut21/Ray-Tracing-Basics/assets/114133139/8d80b86f-aff6-4e92-8b54-6bba753e8fff)
+<p style="text-align:center">
+    <img src="./output/balls.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
