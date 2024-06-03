@@ -1,4 +1,5 @@
 # Balls and More: Experiments With Ray Tracers
+## PART 1
 
 
 ## Yapping and background
@@ -62,7 +63,11 @@ g++ <filename>.cpp \
 
 Outputs  the following image:
 
-![img1](./output/img1.png)
+<p style="text-align:center">
+    <img src="./output/img1.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
+
+
 
 Instead of writing to a file, you could also write the stdout using cout and then `>` to redirect the text to a file of your choosing. In this case, your code uses standard I/O and is compiled like this:
 
@@ -98,7 +103,11 @@ for(int j = ny-1; j>=0; j--){
 ```
 outputs this circular gradient:
 
-![alt text](./output/img2.png)
+<p style="text-align:center">
+    <img src="./output/img2.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
+
+
 
 
 ## The vec3 Class
@@ -310,7 +319,9 @@ So I set up a helper `color()` function that uses a ray and outputs a vec3 value
 
 I set up the screen with dimensions $(-2, -1, -1), (-2, 1, -1), (2, 1, -1), (2, -1, -1)$ where $z=-1$ signifies that the camera is 1 unit above the screen.
 
-![alt text](./output/coord.png)
+<p style="text-align:center">
+    <img src="./output/coord.png" alt="alt text" style="width: 90%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 ```cpp
 vec3 color(ray& r){
@@ -352,7 +363,9 @@ int main(){
 ```
 outputs this gradient:
 
-![alt text](./output/img3.png)
+<p style="text-align:center">
+    <img src="./output/img3.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 Notice this part of the code:
 `float red = (float)(direction.x() + 1);`. `red` needs to be a value between $0$ and $1$
@@ -405,7 +418,9 @@ $$
 
 Notice, that the condition is a quadratic equation in t, and is satisfied when the discriminant is non negative.
 
-![alt text](./output/sphere.png)
+<p style="text-align:center">
+    <img src="./output/sphere.png" alt="alt text" style="width: 90%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 Hence, I could now create a function with the signature `bool hits_sphere(const vec3& center, float radius, const ray& r)`
 
@@ -438,7 +453,9 @@ vec3 color(const ray& r) {
 
 the `main()` remains unchanged, and the output is:
 
-![bangladeshi realness](./output/blgdsh.png)
+<p style="text-align:center">
+    <img src="./output/blgdsh.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 Yay, it works, but also looks like the Bangladeshi flag which is an aesthetic chocie im not taking to my grave, so i will be using another `color()` that linearly interpolates blue hues depending on the $y$ value:
 ```cpp
@@ -451,7 +468,9 @@ vec3 color(const ray& r) {
         return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
 }
 ```
-![alt text](./output/circle.png)
+<p style="text-align:center">
+    <img src="./output/circle.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 Much better, but this is still just a... circle, which makes sense bcs this  has fundamentally just projected a sphere onto our screen. But we can use _surface normals_ to give this sphere a sense of shading, and reflection.
 
@@ -459,7 +478,9 @@ Much better, but this is still just a... circle, which makes sense bcs this  has
 
 This is a surface normal:
 
-![alt text](normal-2.png)
+<p style="text-align:center">
+    <img src="./output/normal-2.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 In code I map each component of the normal to be between 0 and 1 and then correspond them to rgb.
 
@@ -498,7 +519,9 @@ vec3 color(const ray& r) {
 
 Using the same `main()` this is the output:
 
-![alt text](./output/sunorm.png)
+<p style="text-align:center">
+    <img src="./output/sunorm.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 ## Setting up the camera
 
@@ -570,18 +593,24 @@ This outputs the same sphere I had previously gotten, but now I also have the ab
 For example: The sphere is centered at $(0, 0, -1)$ (notice the parameters to `hit_sphere_at()`), with radius $=0.5$ and our camera is at $(0, 0, 0)$ but if I move the camera to $(0, 0, -0.4)$ the rendered sphere should appear larger as it is closer. And that does happen:
 `camera cam(vec3(-2.0, -1.0, -1.0), vec3(4.0, 0.0, 0.0), vec3(0.0, 2.0, 0.0), vec3(0.0, 0.0, -0.4));` outputs:
 
-![alt text](./output/bigsph.png)
+<p style="text-align:center">
+    <img src="./output/bigsph.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 We could also place the camera "behind" the sphere by making $z=-2$, this should output a sphere of the same size, since the distance between the camera and the centre of the sphere is still 1 units, but the color should be different since different normals are being rendered. And voila:
 
-![alt text](./output/blsp.png)
+<p style="text-align:center">
+    <img src="./output/blsp.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 
 ### A subtle bug appears
 
 So far, our code seems to be working correctly. But, what if we place the camera _INSIDE_ the surface of the sphere? Let's change the camera position to be $(0,0,-0.6)$. We would expect that the entire view of the camera would be covered by the sphere and we should see the gradient corresponding to the inner surface normals. The image rendered is:
 
-![alt text](nosph.png)
+<p style="text-align:center">
+    <img src="./output/nosph.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 This is strange, the sphere isn't rendered at all, and all we see is the background. This means that our rays are somehow passing _through_ the sphere as if it were transparent. Let's try to fix this. 
 
@@ -600,7 +629,9 @@ Now that I identified the bug, the fix is simple: change the if condition to:
 
 Let's look at our new render now:
 
-![alt text](./output/insidesph.png)
+<p style="text-align:center">
+    <img src="./output/insidesph.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 Much better. If you keep the camera _on_ the sphere, the code still works and outputs the expect solid color corresponding to the normal of the point on which the camera is placed.
 
@@ -610,7 +641,9 @@ Much better. If you keep the camera _on_ the sphere, the code still works and ou
 
 Look what happens if I place my camera at $(0,1,-1)$ which is also 1 unit away from the centre:
 
-![alt text](./output/cone.png)
+<p style="text-align:center">
+    <img src="./output/cone.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 This is very cool! We seem to be generating a cone. Actually, it's much cooler, we are generating conical sections, as plane slices on the sphere at different angles. This is because (so far) our camera cannot turn and only outputs light upto the corners of its view (as opposed to in all directions). This causes the sphere to be sectioned of the a plane not perpendicular to the camera. 
 
@@ -659,11 +692,15 @@ The only change is that `vertical`, `lower_left_corner`, and `horizontal` are no
 
 Using `camera cam(90, float(nx)/float(ny))` outputs the following image, which we have seen before:
 
-![alt text](./output/sunorm.png)
+<p style="text-align:center">
+    <img src="./output/sunorm.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 But reducing the field of view by keeping `vfov` (verticle fov) to be 40 degrees, we can only see some part of the sphere:
 
-![alt text](./output/somsph.png)
+<p style="text-align:center">
+    <img src="./output/somsph.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 Great, but our camera still can't rotate. Let's change that.
 
@@ -725,13 +762,17 @@ This is the output using
 camera cam(vec3(-2,2,1), vec3(0,0,-1), vec3(0,1,0), 90, float(nx)/float(ny));
 ```
 
-![alt text](./output/cam.png)
+<p style="text-align:center">
+    <img src="./output/cam.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 You could try changing vup but bcs of how completely symmetric a sphere is the only change will be in the normals, not the shape.
 
 To zoom in let's reduce the FOV to 15:
 
-![alt text](./output/zom.png)
+<p style="text-align:center">
+    <img src="./output/zom.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 ## What else can we do with the current setup?
 
@@ -820,7 +861,9 @@ vec3 colorCylinder(const ray& r) {
 ```
 outputs:
 
-![alt text](./output/clinder.png)
+<p style="text-align:center">
+    <img src="./output/clinder.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 Yay, it works, now let's make a finite cylinder by only using those $t$'s for which the $z$ value is between $z_max$ and $z_min$, and if 2 values of $t$ satisfy this we return the smaller value. The updated `hit_cylinder_at_t()` looks like:
 ```cpp
@@ -859,7 +902,9 @@ float hit_cylinder_at_t(const vec3& center, float radius, float z_min, float z_m
 ```
 and this outputs:
 
-![alt text](./output/fomote.png)
+<p style="text-align:center">
+    <img src="./output/fomote.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 ### Cone
 
@@ -936,7 +981,9 @@ This outputs a double cone, corresponding to positive and negative $t$'s. We can
 
 The `colorCone()` function is nearly identical. You can find it on the GitHub repo.
 
-![alt text](./output/doublecn.png)
+<p style="text-align:center">
+    <img src="./output/doublecn.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 ### Torus
 Can be implemented similar to what we have done so far, but the final equation in $t$ is quartic (degree 4), which makes sense since a ray can intersect a torus at max 4 times. I am, for now, too tired to type out the math and the code, but it can be done lol. I'll try to add it soon.
@@ -947,8 +994,23 @@ For now: find the math here https://www.cl.cam.ac.uk/teaching/1999/AGraphHCI/SMA
 ![alt text](https://www.gsn-lib.org/docs/nodes/images/torus_20_50.png)
 
 ### Ok I'm so tired now. I'll update it soon or post a part 2. 
+
+I thought i'd render more interesting shapes, but I tried solving the ray collision equation for two shapes and this was the output:
+
+<p style="text-align:center">
+    <img src="./output/huh.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
+
+idk 
+
 Here are the things im working on: creating perlin noise textures, making the code more modular and add things like material properites (think metal vs glass vs water droplet), writing a GPU usable version of the tracer, and rendering these surfaces: https://www.imaginary.org/gallery/herwig-hauser-classic
 
+
+For shits and giggles here is the render I made following Shirley's blog, which we are about 3 classes away from making. It took about 35 mins to render on my slow ass Intel MacBook Air:
+
+<p style="text-align:center">
+    <img src="./output/balls.png" alt="alt text" style="width: 80%; border-radius: 0px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+</p>
 
 Thanks for reading so far (or skipping to the end, id do the same trust me). If you want to reach out w ideas, bugs, imporvements or to just chat wish it upon a star that we cross paths (or open a pull request, or write to me at utkarshzee@gmail.com)
 
